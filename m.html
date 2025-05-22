@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Xe tự hành ESP8266</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; }
+    button, input, select { margin: 10px; padding: 10px 20px; }
+    .row { margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h2>Điều khiển xe tự hành</h2>
+
+  <div class="row">
+    <label><strong>Chế độ:</strong></label>
+    <button onclick="setMode(false)">Thủ công</button>
+    <button onclick="setMode(true)">Tự lái</button>
+  </div>
+
+  <div class="row">
+    <label><strong>Góc lái:</strong></label>
+    <input type="range" min="1000" max="2000" value="1500" id="steering" oninput="updateSteering(this.value)">
+  </div>
+
+  <div class="row">
+    <label><strong>Tốc độ động cơ:</strong></label>
+    <input type="range" min="1000" max="2000" value="1500" id="speed" oninput="updateSpeed(this.value)">
+  </div>
+
+  <div class="row">
+    <label><strong>Tốc độ ben:</strong></label>
+    <input type="range" min="1000" max="2000" value="1500" id="speed2" oninput="updateSpeed2(this.value)">
+  </div>
+
+  <div class="row">
+    <label><strong>Số:</strong></label>
+    <button onclick="setGear(1)">Số 1</button>
+    <button onclick="setGear(2)">Số 2</button>
+  </div>
+
+  <div class="row">
+    <label><strong>Điểm đến GPS:</strong></label><br>
+    Lat: <input type="text" id="lat" placeholder="vd: 20.123456">
+    Lng: <input type="text" id="lng" placeholder="vd: 105.123456">
+    <button onclick="setDestination()">Gửi</button>
+  </div>
+
+  <div class="row">
+    <button onclick="useCurrentGPS()">Dùng vị trí hiện tại làm đích</button>
+  </div>
+
+  <hr>
+
+  <div id="status"></div>
+
+  <script>
+    function setMode(auto) {
+      fetch(`/setMode?auto=${auto ? 1 : 0}`).then(r => r.json()).then(console.log);
+    }
+
+    function updateSteering(angle) {
+      fetch(`/setSteering?angle=${angle}`);
+    }
+
+    function updateSpeed(speed) {
+      fetch(`/setMotor?speed=${speed}`);
+    }
+
+    function updateSpeed2(speed) {
+      fetch(`/setMotor2?speed=${speed}`);
+    }
+
+    function setGear(gear) {
+      fetch(`/setGear?gear=${gear}`);
+    }
+
+    function setDestination() {
+      const lat = document.getElementById("lat").value;
+      const lng = document.getElementById("lng").value;
+      fetch(`/setLat?lat=${lat}`).then(() => {
+        fetch(`/setLng?lng=${lng}`).then(() => alert("Đã gửi điểm đến!"));
+      });
+    }
+
+    function useCurrentGPS() {
+      fetch("/setDestination").then(() => alert("Đã dùng vị trí hiện tại làm đích!"));
+    }
+
+    function updateStatus() {
+      fetch("/status").then(r => r.json()).then(data => {
+        document.getElementById("status").innerText = JSON.stringify(data, null, 2);
+      });
+    }
+
+    setInterval(updateStatus, 1000);
+  </script>
+</body>
+</html>
